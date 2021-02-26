@@ -26,6 +26,7 @@ class StoreTeamRequest extends JsonRequest
         return [
             'name' => 'required|max:255',
             'email' => 'required|max:255|email',
+            'photo' => 'mimes:jpg|file|max:102400'
         ];
     }
 }

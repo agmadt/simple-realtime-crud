@@ -23,10 +23,10 @@
       </div>
       <div>
         <label for="photo" class="block text-sm font-medium text-gray-700 sm:mt-px sm:pt-2">
-          Photo
+          Photo: {{ photo.name }}
         </label>
         <div class="mt-1">
-          <div class="w-full flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+          <div id="photo-drop-zone" class="w-full flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
             <div class="space-y-1 text-center">
               <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -34,16 +34,17 @@
               <div class="flex text-sm text-gray-600">
                 <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                   <span>Upload a file</span>
-                  <input id="file-upload" name="file-upload" type="file" class="sr-only">
+                  <input id="file-upload" name="file-upload" type="file" class="sr-only" accept="image/jpeg" @change="onFileChange($event)">
                 </label>
                 <p class="pl-1">or drag and drop</p>
               </div>
               <p class="text-xs text-gray-500">
-                PNG, JPG, GIF up to 10MB
+                JPG up to 100MB
               </p>
             </div>
           </div>
         </div>
+        <p class="mt-2 text-sm text-red-500" v-if="photo.error">{{ photo.error }}</p>
       </div>
       <button type="button"
         class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -79,7 +80,7 @@
           error: null
         },
         photo: {
-          value: '',
+          name: '',
           error: null
         },
         submitButton: {
@@ -151,7 +152,26 @@
             }
           }
         })
-      }
+      },
+      onFileChange(e) {
+        var files = e.target.files || e.dataTransfer.files;
+        if (!files.length) return;
+
+        if (files[0].size > 102400000) {
+          this.photo.error = "File size must not exceed 100MB"
+          return;
+        }
+
+        if (files[0].type != "image/jpeg") {
+          this.photo.error = "Photo must be jpg"
+          return;
+        }
+
+        this.photo = {
+          name: files[0].name,
+          error: null
+        }
+      },
     }
   }
 </script>
