@@ -14,4 +14,7 @@ use Illuminate\Support\Facades\Route;
 |/
 */
 
-Route::get('/teams', [\App\Api\V1\Controllers\TeamController::class, 'index']);
+Route::group(['prefix' => 'v1'], function() {
+    Route::get('/teams', [\App\Api\V1\Controllers\TeamController::class, 'index']);
+    Route::post('/teams', [\App\Api\V1\Controllers\TeamController::class, 'store']);
+});

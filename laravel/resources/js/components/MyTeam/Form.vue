@@ -5,13 +5,20 @@
       <div>
         <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
         <div class="mt-1">
-          <input type="text" name="name" id="name" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 p-3 border rounded-md" placeholder="Calvin Hawkins">
+          <input type="text" name="name" id="name" placeholder="Calvin Hawkins"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 p-3 border rounded-md"
+            v-model="name.value"
+            >
+            <p class="mt-2 text-sm text-red-500" v-if="name.error">{{ name.error }}</p>
         </div>
       </div>
       <div>
         <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
         <div class="mt-1">
-          <input type="text" name="email" id="email" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 p-3 border rounded-md" placeholder="you@example.com">
+          <input type="text" name="email" id="email" placeholder="you@example.com"
+            class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300 p-3 border rounded-md"
+            v-model="email.value">
+          <p class="mt-2 text-sm text-red-500" v-if="email.error">{{ email.error }}</p>
         </div>
       </div>
       <div>
@@ -38,9 +45,113 @@
           </div>
         </div>
       </div>
-      <button type="button" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+      <button type="button"
+        class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+        :class="[
+          submitButton.disabled ? 'opacity-50 cursor-not-allowed' : ''
+        ]"
+        :disabled="submitButton.disabled"
+        @click="submitForm()"
+      >
         Submit
       </button>
+      <div class="flex items-center bg-blue-500 text-white text-sm font-bold px-4 py-3 rounded"
+        v-if="form.submitted"
+      >
+        {{ form.message }}
+      </div>
     </form>
   </div>
 </template>
+
+<script>
+  const axios = require('axios').default;
+  
+  export default {
+    data() {
+      return {
+        name: {
+          value: '',
+          error: null
+        },
+        email: {
+          value: '',
+          error: null
+        },
+        photo: {
+          value: '',
+          error: null
+        },
+        submitButton: {
+          disabled: true,
+        },
+        form: {
+          error: false,
+          success: false,
+          message: null
+        }
+      }
+    },
+    watch: {
+      name: {
+        handler(newName, oldName) {
+          this.submitButton.disabled = true;
+          
+          if (newName.value.length > 0 && this.email.value.length > 0) {
+            this.submitButton.disabled = false;
+          }
+        },
+        deep: true
+      },
+      email: {
+        handler(newEmail, oldEmail) {
+          this.submitButton.disabled = true;
+
+          if (newEmail.value.length > 0 && this.name.value.length > 0) {
+            this.submitButton.disabled = false;
+          }
+        },
+        deep: true
+      }
+    },
+    methods: {
+      submitForm() {
+        
+        if (this.name.value.length == 0) {
+          this.name.error = "The name field is required";
+        } else {
+          this.name.error = null;
+        }
+
+        if (this.email.value.length == 0) {
+          this.email.error = "The email field is required";
+        } else {
+          this.email.error = null;
+        }
+
+        if (this.name.value.length == 0 || this.email.value.length == 0) {
+          return;
+        }
+
+        axios.post('/api/v1/teams', {
+          name: this.name.value,
+          email: this.email.value,
+        })
+        .then(data => {
+
+        })
+        .catch(err => {
+          if (err.response.status == 422) {
+            if (err.response.data.errors.name) {
+              this.name.error = err.response.data.errors.name[0];
+            }
+
+            if (err.response.data.errors.email) {
+              this.email.error = err.response.data.errors.email[0];
+            }
+          }
+        })
+      }
+    }
+  }
+</script>
