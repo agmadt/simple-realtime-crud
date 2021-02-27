@@ -15,6 +15,33 @@ class TeamController
 
     public function store(StoreTeamRequest $request)
     {
-        // Server-side validation
+        $createData = [
+            'Name' => $request->name,
+            'Email' => $request->email,
+        ];
+
+        if ($request->file('photo')) {
+            $photo = $request->file('photo');
+
+            $photoPath = $photo->storePublicly(
+                '/',
+                's3'
+            );
+
+            $createData['Photo'] = [
+                [
+                    'url' => config('filesystems.disks.s3.bucket_url') . $photoPath,
+                    'filename' => $photo->getClientOriginalName(),
+                ]
+            ];
+        }
+
+        Airtable::table('default')->create($createData);
+            
+        return response()
+            ->json([
+                'data' => $createData,
+                'message' => 'Team successfully added.'
+            ]);
     }
 }

@@ -54,10 +54,17 @@
         :disabled="submitButton.disabled"
         @click="submitForm()"
       >
+        <svg v-if="form.processing" class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
         Submit
       </button>
-      <div class="flex items-center bg-blue-500 text-white text-sm font-bold px-4 py-3 rounded"
-        v-if="form.submitted"
+      <div class="flex items-center text-white text-sm font-bold px-4 py-3 rounded"
+        :class="[
+          form.success ? 'bg-blue-500' : 'bg-red-500'
+        ]"
+        v-if="form.success || form.error"
       >
         {{ form.message }}
       </div>
@@ -81,12 +88,14 @@
         },
         photo: {
           name: '',
+          value: '',
           error: null
         },
         submitButton: {
           disabled: true,
         },
         form: {
+          processing: false,
           error: false,
           success: false,
           message: null
@@ -117,6 +126,15 @@
     },
     methods: {
       submitForm() {
+
+        this.form = {
+          processing: true,
+          message: null,
+          success: false,
+          error: false
+        }
+
+        this.submitButton.disabled = true;
         
         if (this.name.value.length == 0) {
           this.name.error = "The name field is required";
@@ -134,12 +152,24 @@
           return;
         }
 
-        axios.post('/api/v1/teams', {
-          name: this.name.value,
-          email: this.email.value,
+        let formData = new FormData();
+        formData.append('name', this.name.value);
+        formData.append('email', this.email.value);
+        
+        if (this.photo.value) {
+          formData.append('photo', this.photo.value);
+        }
+
+        axios.post('/api/v1/teams', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
         })
         .then(data => {
-
+          this.form = {
+            success: true,
+            message: data.data.message
+          }
         })
         .catch(err => {
           if (err.response.status == 422) {
@@ -150,7 +180,18 @@
             if (err.response.data.errors.email) {
               this.email.error = err.response.data.errors.email[0];
             }
+
+            return;
           }
+
+          this.form = {
+            error: true,
+            message: err.response.data.message
+          }
+        })
+        .finally(data => {
+          this.submitButton.disabled = false;
+          this.form.processing = false;
         })
       },
       onFileChange(e) {
@@ -163,12 +204,13 @@
         }
 
         if (files[0].type != "image/jpeg") {
-          this.photo.error = "Photo must be jpg"
+          this.photo.error = "Photo must be a jpg"
           return;
         }
 
         this.photo = {
           name: files[0].name,
+          value: files[0],
           error: null
         }
       },
