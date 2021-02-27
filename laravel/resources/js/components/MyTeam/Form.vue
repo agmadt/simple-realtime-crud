@@ -107,7 +107,7 @@
         handler(newName, oldName) {
           this.submitButton.disabled = true;
           
-          if (newName.value.length > 0 && this.email.value.length > 0) {
+          if (this.name.value.length > 0 && this.email.value.length > 0) {
             this.submitButton.disabled = false;
           }
         },
@@ -170,6 +170,13 @@
             success: true,
             message: data.data.message
           }
+
+          this.name.value = '';
+          this.email.value = '';
+          this.photo = {
+            name: '',
+            value: '',
+          };
         })
         .catch(err => {
           if (err.response.status == 422) {
