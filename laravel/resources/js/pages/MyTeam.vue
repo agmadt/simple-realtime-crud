@@ -10,7 +10,7 @@
 
 <script>
   import MyTeamForm from '../components/MyTeam/Form';
-  import MyTeamTable from '../components/MyTeam/Table';
+  import MyTeamTable from '../components/MyTeam/TeamsTable';
 
   export default {
     components: {

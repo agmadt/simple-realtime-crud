@@ -8,9 +8,29 @@ use Illuminate\Support\Collection;
 
 class TeamController
 {
-    public function index(): Collection
+    public function index()
     {
-        return Airtable::table('default')->get();
+        $teams = [];
+        $getAllTeam = Airtable::table('default')->get();
+
+        foreach ($getAllTeam as $team) {
+
+            $photo = null;
+            if (isset($team['fields']['Photo']) && count($team['fields']['Photo']) > 0) {
+                $photo = $team['fields']['Photo'][0]['url'];
+            }
+
+            $teams[] = [
+                'name' => $team['fields']['Name'],
+                'email' => $team['fields']['Email'],
+                'photo' => $photo
+            ];
+        }
+            
+        return response()
+            ->json([
+                'teams' => $teams
+            ]);
     }
 
     public function store(StoreTeamRequest $request)
