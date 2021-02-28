@@ -3,15 +3,32 @@
 namespace App\Api\V1\Controllers;
 
 use Airtable;
+use App\Jobs\TeamStored;
+use Illuminate\Support\Facades\Redis;
 use App\Api\V1\Requests\StoreTeamRequest;
-use Illuminate\Support\Collection;
 
 class TeamController
 {
     public function index()
     {
         $teams = [];
-        $getAllTeam = Airtable::table('default')->get();
+        
+        $getAllTeam = Redis::get('all_team');
+        if (!$getAllTeam) {
+
+            Redis::set('airtable_fetch_process', 1);
+
+            $getAllTeam = Airtable::table('default')->get();
+            
+            Redis::set('airtable_fetch_process', 0);
+
+            $getAllTeam = json_encode($getAllTeam);
+
+            Redis::set('all_team', $getAllTeam);
+            Redis::expire('all_team', 1 * 60); // will expire in 1 minutes
+        }
+
+        $getAllTeam = json_decode($getAllTeam, true);
 
         foreach ($getAllTeam as $team) {
 
@@ -57,8 +74,16 @@ class TeamController
                 ]
             ];
         }
+        
+        $totalQueued = Redis::get('queued_job');
 
-        Airtable::table('default')->create($createData);
+		if (!$totalQueued) {
+			$totalQueued = 0;
+		}
+
+		Redis::set('queued_job', $totalQueued += 1);
+
+		TeamStored::dispatch($createData)->delay($totalQueued * 1);
 
         $createData['id'] = uniqid() . time();
             
