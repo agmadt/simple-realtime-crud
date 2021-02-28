@@ -102,6 +102,22 @@
         }
       }
     },
+    mounted() {
+      this.sockets.subscribe('teams:added', (data) => {
+
+          let temporaryTeams = this.$store.state.teams;
+
+          const newlyAddedTeam = {
+            id: data.id,
+            name: data.name,
+            email: data.email,
+            photo: data.photo ? data.photo : null
+          };
+
+          temporaryTeams.unshift(newlyAddedTeam)
+          this.$store.commit('setTeams', temporaryTeams)
+      });
+    },
     watch: {
       name: {
         handler(newName, oldName) {
@@ -180,14 +196,17 @@
 
           let temporaryTeams = this.$store.state.teams;
 
-          temporaryTeams.unshift({
+          const newlyAddedTeam = {
             id: data.data.data.id,
             name: data.data.data.Name,
             email: data.data.data.Email,
-            photo: data.data.data.Photo[0].url
-          })
-
+            photo: data.data.data.Photo ? data.data.data.Photo[0].url : null
+          };
+          
+          temporaryTeams.unshift(newlyAddedTeam)
           this.$store.commit('setTeams', temporaryTeams)
+
+          this.$socket.emit('teams:added', newlyAddedTeam);
         })
         .catch(err => {
           if (err.response) {
@@ -213,7 +232,7 @@
 
           console.log(err)
         })
-        .finally(data => {
+        .finally(() => {
           this.submitButton.disabled = true;
           this.form.processing = false;
         })
