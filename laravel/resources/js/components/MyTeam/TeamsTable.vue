@@ -1,7 +1,7 @@
 <template>
   <div>
     <ul class="divide-y divide-gray-200">
-      <team v-for="team in teams" :key="team.id" :team="team"></team>
+      <team v-for="team in $store.state.teams" :key="team.id" :team="team"></team>
     </ul>
   </div>
 </template>
@@ -21,7 +21,7 @@ export default {
   mounted() {
     axios.get('/api/v1/teams')
     .then(data => {
-      this.teams = data.data.teams;
+      this.$store.commit('setTeams', data.data.teams)
     })
   }
 }

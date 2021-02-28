@@ -177,27 +177,44 @@
             name: '',
             value: '',
           };
+
+          let temporaryTeams = this.$store.state.teams;
+
+          temporaryTeams.unshift({
+            id: data.data.data.id,
+            name: data.data.data.Name,
+            email: data.data.data.Email,
+            photo: data.data.data.Photo[0].url
+          })
+
+          this.$store.commit('setTeams', temporaryTeams)
         })
         .catch(err => {
-          if (err.response.status == 422) {
-            if (err.response.data.errors.name) {
-              this.name.error = err.response.data.errors.name[0];
+          if (err.response) {
+            if (err.response.status == 422) {
+              if (err.response.data.errors.name) {
+                this.name.error = err.response.data.errors.name[0];
+              }
+
+              if (err.response.data.errors.email) {
+                this.email.error = err.response.data.errors.email[0];
+              }
+
+              return;
             }
 
-            if (err.response.data.errors.email) {
-              this.email.error = err.response.data.errors.email[0];
+            this.form = {
+              error: true,
+              message: err.response.data.message
             }
 
             return;
           }
 
-          this.form = {
-            error: true,
-            message: err.response.data.message
-          }
+          console.log(err)
         })
         .finally(data => {
-          this.submitButton.disabled = false;
+          this.submitButton.disabled = true;
           this.form.processing = false;
         })
       },

@@ -21,6 +21,7 @@ class TeamController
             }
 
             $teams[] = [
+                'id' => $team['id'],
                 'name' => $team['fields']['Name'],
                 'email' => $team['fields']['Email'],
                 'photo' => $photo
@@ -38,6 +39,7 @@ class TeamController
         $createData = [
             'Name' => $request->name,
             'Email' => $request->email,
+            'Photo' => null
         ];
 
         if ($request->file('photo')) {
@@ -57,6 +59,8 @@ class TeamController
         }
 
         Airtable::table('default')->create($createData);
+
+        $createData['id'] = uniqid() . time();
             
         return response()
             ->json([
