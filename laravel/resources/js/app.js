@@ -8,7 +8,7 @@ import VueSocketIO from 'vue-socket.io'
 Vue.use(Vuex);
 Vue.use(new VueSocketIO({
     debug: true,
-    connection: 'http://localhost:3000'
+    connection: process.env.WEBSOCKET_URL
 }))
 
 Vue.component('my-team', require('./pages/MyTeam.vue').default);

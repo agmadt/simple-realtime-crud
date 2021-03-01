@@ -1,5 +1,7 @@
-const mix = require('laravel-mix');
+require('dotenv').config()
+let webpack = require('webpack')
 
+const mix = require('laravel-mix');
 /*
  |--------------------------------------------------------------------------
  | Mix Asset Management
@@ -11,5 +13,17 @@ const mix = require('laravel-mix');
  |
  */
 
+let dotenvplugin = new webpack.DefinePlugin({
+    'process.env': {
+        WEBSOCKET_URL: JSON.stringify(process.env.WEBSOCKET_URL)
+    }
+})
+
 mix.js('resources/js/app.js', 'public/js').vue()
     .postCss('resources/css/app.css', 'public/css', []);
+
+mix.webpackConfig({
+    plugins: [
+        dotenvplugin,
+    ]
+})
