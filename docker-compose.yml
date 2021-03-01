@@ -1,0 +1,53 @@
+version: "3.7"
+
+services:
+  php:
+    build:
+      context: ./laravel
+      dockerfile: php.Dockerfile
+    environment:
+      AIRTABLE_KEY:
+      AIRTABLE_BASE:
+      AIRTABLE_TABLE:
+      AIRTABLE_TYPECAST: "true"
+      AWS_DEFAULT_REGION:
+      AWS_BUCKET:
+      AWS_ACCESS_KEY_ID:
+      AWS_SECRET_ACCESS_KEY:
+      AWS_BUCKET_URL:
+      REDIS_HOST: redis
+      REDIS_PORT: 26379
+      QUEUE_CONNECTION: redis
+      WEBSOCKET_URL:
+
+  web:
+    build:
+      context: ./laravel
+      dockerfile: web.Dockerfile
+    ports:
+      - 8888:80
+
+  php-worker:
+    build:
+      context: ./laravel
+      dockerfile: php-worker.Dockerfile
+    volumes:
+      - ./laravel:/var/www
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - 26379:6379
+    volumes:
+      - redis:/data
+  
+  websocket:
+    build:
+      context: ./websocket
+      dockerfile: Dockerfile
+    ports:
+      - 8889:3000
+
+volumes:
+  redis:
+  dbdata:
